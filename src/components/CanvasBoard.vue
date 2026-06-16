@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { resolveMapDrawSource } from '../core/mapDisplayCache'
 import {
   draftImageRegion,
   exportMapAsJpeg,
@@ -49,6 +50,25 @@ const exporting = ref(false)
 
 let resizeObserver: ResizeObserver | null = null
 
+function getDevicePixelRatio(): number {
+  return window.devicePixelRatio || 1
+}
+
+function resizeCanvas() {
+  const container = containerRef.value
+  const canvas = canvasRef.value
+  if (!container || !canvas) return
+
+  const { clientWidth, clientHeight } = container
+  const dpr = getDevicePixelRatio()
+  canvasSize.value = { width: clientWidth, height: clientHeight }
+  canvas.width = Math.floor(clientWidth * dpr)
+  canvas.height = Math.floor(clientHeight * dpr)
+  canvas.style.width = `${clientWidth}px`
+  canvas.style.height = `${clientHeight}px`
+  draw()
+}
+
 function getCanvasPoint(event: MouseEvent): Point {
   const canvas = canvasRef.value!
   const rect = canvas.getBoundingClientRect()
@@ -58,24 +78,14 @@ function getCanvasPoint(event: MouseEvent): Point {
   }
 }
 
-function resizeCanvas() {
-  const container = containerRef.value
-  const canvas = canvasRef.value
-  if (!container || !canvas) return
-
-  const { clientWidth, clientHeight } = container
-  canvasSize.value = { width: clientWidth, height: clientHeight }
-  canvas.width = clientWidth
-  canvas.height = clientHeight
-  draw()
-}
-
 function draw() {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext('2d')
   if (!canvas || !ctx) return
 
-  const { width, height } = canvas
+  const dpr = getDevicePixelRatio()
+  const { width, height } = canvasSize.value
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.clearRect(0, 0, width, height)
   ctx.fillStyle = '#e2e8f0'
   ctx.fillRect(0, 0, width, height)
@@ -83,10 +93,13 @@ function draw() {
   const img = store.image
   if (img) {
     const vp = viewport.value
+    const mapSource = resolveMapDrawSource(img, vp.zoom, dpr)
     ctx.save()
     ctx.translate(vp.offsetX, vp.offsetY)
     ctx.scale(vp.zoom, vp.zoom)
-    ctx.drawImage(img, 0, 0)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(mapSource, 0, 0, img.width, img.height)
     ctx.restore()
 
     drawLines(ctx, vp)

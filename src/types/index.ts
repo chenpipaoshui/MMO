@@ -33,13 +33,13 @@ export interface MeasureLine {
   strokeWidth: number;
 }
 
-export const DEFAULT_LABEL_FONT_SIZE = 25;
-export const MIN_LABEL_FONT_SIZE = 8;
-export const MAX_LABEL_FONT_SIZE = 72;
+export const DEFAULT_LABEL_FONT_SIZE = 77;
+export const MIN_LABEL_FONT_SIZE = 50;
+export const MAX_LABEL_FONT_SIZE = 150;
 
-export const DEFAULT_LINE_STROKE_WIDTH = 4;
-export const MIN_LINE_STROKE_WIDTH = 1;
-export const MAX_LINE_STROKE_WIDTH = 16;
+export const DEFAULT_LINE_STROKE_WIDTH = 17;
+export const MIN_LINE_STROKE_WIDTH = 10;
+export const MAX_LINE_STROKE_WIDTH = 35;
 
 export const DEFAULT_MAP_SCALE_DENOMINATOR = 4000;
 
